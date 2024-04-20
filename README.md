@@ -1,1 +1,3 @@
-# trading_algorithm
+## trading_algorithm
+
+# Following a youtube video
