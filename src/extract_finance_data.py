@@ -28,22 +28,22 @@ class Stock:
     def stock_data(self, value):
         self._stock_data = value
 
-    def plot_stock(self):
+    def plot(self):
         """Plots the closing price of the stock along with a 6-month SMA and EMA."""
         if self.stock_data.empty:
             print(f"No data available for {self.ticker}")
             return
 
         # Calculate the 6-month SMA and EMA
-        self.stock_data['6-Month SMA'] = self.stock_data['Close'].rolling(window=120).mean()
-        self.stock_data['6-Month EMA'] = self.stock_data['Close'].ewm(span=120, adjust=False).mean()
+        self.stock_data['6-Month SMA'] = self.stock_data['Adj Close'].rolling(window=120).mean()
+        self.stock_data['6-Month EMA'] = self.stock_data['Adj Close'].ewm(span=120, adjust=False).mean()
 
         # Plotting
         plt.figure(figsize=(14, 7))
-        plt.plot(self.stock_data.index, self.stock_data['Close'], label='Close Price', linewidth=1)
+        plt.plot(self.stock_data.index, self.stock_data['Adj Close'], label='Close Price', linewidth=1)
         plt.plot(self.stock_data.index, self.stock_data['6-Month SMA'], label='6-Month SMA', color='orange', linewidth=2)
         plt.plot(self.stock_data.index, self.stock_data['6-Month EMA'], label='6-Month EMA', color='green', linewidth=2)
-        plt.title(f'Closing Price, SMA, and EMA of {self.ticker}')
+        plt.title(f'{self.ticker}')
         plt.xlabel('Date')
         plt.ylabel('Price')
         plt.legend()
@@ -56,9 +56,20 @@ class Stock:
         forex_data = forex.stock_data[['Close']].rename(columns={'Close': 'Forex_Close'})
         combined_data = self.stock_data.merge(forex_data, how='left', left_index=True, right_index=True)
         combined_data['Close'] = combined_data['Close'] / combined_data['Forex_Close']
+        combined_data['Open'] = combined_data['Open'] / combined_data['Forex_Close']
+        combined_data['High'] = combined_data['High'] / combined_data['Forex_Close']
+        combined_data['Low'] = combined_data['Low'] / combined_data['Forex_Close']
+        combined_data['Adj Close'] = combined_data['Adj Close'] / combined_data['Forex_Close']
         self.stock_data = combined_data  # Update stock data with converted prices
         print(self.stock_data.head())
+    
+    # def get_market_cap(self):
+    #     info = yf.Ticker(self.ticker).fast_info
+    #     marketcap = info['market_cap']
+    #     df = pd.DataFrame()
+    #     df = df._append({'Stock':self.ticker,'Marketcap':marketcap}, ignore_index=True)
+    #     print(df)
 
 # Usage
-BAE = Stock('BA.L', conversion_ticker='GBPUSD=X')
-BAE.plot_stock()
+BAE = Stock('^GSPC', conversion_ticker='GBPUSD=X')
+BAE.plots()
